@@ -905,6 +905,7 @@ Business presentations, product introductions, project summaries — formal but 
     pageEditPlanning: 'Understanding this slide edit request',
     pageEditPlanTitle: 'Edit plan',
     pageEditPlanConfirm: 'Confirm and edit',
+    selectedPageCount: '{count} pages selected',
     pageEditPlanCancel: 'Cancel plan',
     pageEditPlanRequiresSavedEdits:
       'Save or discard unsaved adjustments on this slide before confirming the AI edit plan.',
@@ -1381,6 +1382,9 @@ Business presentations, product introductions, project summaries — formal but 
     deleteConfirmTitle: 'Delete this page?',
     deleteConfirmDescription: 'The page will be removed from this presentation.',
     deleteConfirmAction: 'Delete',
+    batchDeleteConfirmTitle: 'Delete these pages?',
+    batchDeleteConfirmDescription: 'Will delete {count} pages. This action cannot be undone.',
+    batchDeleteConfirmAction: 'Delete {count} pages',
     deleteLastPageError: 'Cannot delete the last page',
     reorderFailed: 'Failed to reorder pages',
     deleteFailed: 'Failed to delete page',

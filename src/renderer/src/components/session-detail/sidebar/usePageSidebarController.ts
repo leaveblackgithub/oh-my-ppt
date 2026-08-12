@@ -202,6 +202,7 @@ export function usePageSidebarController(sessionId: string) {
     onRetryFailedPage: (page: SessionPreviewPage) => void handleRetryFailedPage(page),
     onReorderPages: handleReorderPages,
     onDeletePage: pageActions.deletePage,
+    onDeleteSelectedPages: pageActions.deleteSelectedPages,
     onRenamePage: pageActions.renamePage,
     onDuplicatePage: pageActions.duplicatePage,
     onUpdatePageOutline: handleUpdatePageOutline,

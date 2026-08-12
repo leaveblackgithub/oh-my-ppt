@@ -16,6 +16,7 @@ export function useSessionPageActions(sessionId: string): {
   exportOutlinesMarkdown: () => void
   renamePage: (page: SessionPreviewPage) => void
   deletePage: (page: SessionPreviewPage) => void
+  deleteSelectedPages: (pageIds: string[]) => void
   duplicatePage: (page: SessionPreviewPage) => void
 } {
   const t = useT()
@@ -49,6 +50,36 @@ export function useSessionPageActions(sessionId: string): {
       setDeleteConfirmPageId(page.id)
     },
     [setDeleteConfirmPageId]
+  )
+
+  const deleteSelectedPages = useCallback(
+    async (pageIds: string[]): Promise<void> => {
+      if (!sessionId || pageIds.length === 0) return
+      const ui = useSessionDetailUiStore.getState()
+      if (ui.isManagingPages) return
+      ui.setIsManagingPages(true)
+      try {
+        const selectedPageId = ui.selectedPageId || ui.selectedPageIds[0]
+        const result = await ipc.deleteSessionPages({
+          sessionId,
+          pageIds,
+          selectedPageId: selectedPageId || undefined
+        })
+        useGenerateStore.getState().setPages(result.generatedPages)
+        useSessionDetailUiStore.getState().setSelectedPageId(result.selectedPageId)
+        useSessionDetailUiStore.getState().bumpPreviewKey()
+        ui.setSelectedPageIds([])
+        ui.setMultiSelectLastIndex(null)
+        void ipc
+          .clearSpeechScript(sessionId)
+          .catch((err) => console.warn('[speech] clearSpeechScript failed', err))
+      } catch (error) {
+        toastError(error instanceof Error ? error.message : t('pageManagement.deleteFailed'))
+      } finally {
+        useSessionDetailUiStore.getState().setIsManagingPages(false)
+      }
+    },
+    [sessionId, t, toastError]
   )
 
   const duplicatePage = useCallback(
@@ -90,6 +121,7 @@ export function useSessionPageActions(sessionId: string): {
     exportOutlinesMarkdown,
     renamePage,
     deletePage,
+    deleteSelectedPages,
     duplicatePage
   }
 }

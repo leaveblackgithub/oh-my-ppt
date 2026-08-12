@@ -70,6 +70,8 @@ interface SessionDetailUiStore {
   pageTitleEditPageId: string | null
   pageTitleEditDraft: string
   deleteConfirmPageId: string | null
+  selectedPageIds: string[]
+  multiSelectLastIndex: number | null
   isAddingPage: boolean
   addingPageId: string | null
   isRetryingSinglePage: boolean
@@ -98,6 +100,8 @@ interface SessionDetailUiStore {
   setIsGeneratingImage: (generating: boolean) => void
   setImageProgress: (progress: { label?: string; progress: number } | null) => void
   setSelectedPageId: (pageId: string | null) => void
+  setSelectedPageIds: (ids: string[]) => void
+  setMultiSelectLastIndex: (index: number | null) => void
   setConsoleOpen: (open: boolean | ((open: boolean) => boolean)) => void
   bumpPreviewKey: () => void
   setIsExportingPdf: (isExporting: boolean) => void
@@ -178,6 +182,8 @@ export const useSessionDetailUiStore = create<SessionDetailUiStore>((set) => ({
   isGeneratingImage: false,
   imageProgress: null,
   selectedPageId: null,
+  selectedPageIds: [],
+  multiSelectLastIndex: null,
   consoleOpen: true,
   previewKey: 0,
   isExportingPdf: false,
@@ -272,7 +278,9 @@ export const useSessionDetailUiStore = create<SessionDetailUiStore>((set) => ({
   setImageCount: (imageCount) => set({ imageCount: Math.max(1, Math.min(4, imageCount)) }),
   setIsGeneratingImage: (isGeneratingImage) => set({ isGeneratingImage }),
   setImageProgress: (imageProgress) => set({ imageProgress }),
-  setSelectedPageId: (selectedPageId) => set({ selectedPageId }),
+  setSelectedPageId: (selectedPageId) => set({ selectedPageId, selectedPageIds: [], multiSelectLastIndex: null }),
+  setSelectedPageIds: (selectedPageIds) => set({ selectedPageIds }),
+  setMultiSelectLastIndex: (multiSelectLastIndex) => set({ multiSelectLastIndex }),
   setConsoleOpen: (open) =>
     set((state) => ({
       consoleOpen: typeof open === 'function' ? open(state.consoleOpen) : open
@@ -492,6 +500,8 @@ export const useSessionDetailUiStore = create<SessionDetailUiStore>((set) => ({
       pageTitleEditPageId: null,
       pageTitleEditDraft: '',
       deleteConfirmPageId: null,
+      selectedPageIds: [],
+      multiSelectLastIndex: null,
       isAddingPage: false,
       addingPageId: null,
       isRetryingSinglePage: false,

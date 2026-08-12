@@ -21,7 +21,7 @@ export const PageThumbnail = memo(function PageThumbnail({
   isSelected: boolean
   previewVersion: number
   renderPreview?: boolean
-  onSelect?: (pageId: string) => void
+  onSelect?: (pageId: string, event?: React.MouseEvent) => void
   actions?: React.ReactNode
   failureOverlay?: React.ReactNode
 }): React.JSX.Element {
@@ -52,7 +52,7 @@ export const PageThumbnail = memo(function PageThumbnail({
     <div
       role="button"
       tabIndex={0}
-      onClick={onSelect ? () => onSelect(page.id) : undefined}
+      onClick={onSelect ? (event) => onSelect(page.id, event) : undefined}
       aria-disabled={!onSelect}
       className={cn(
         'group relative block w-full min-w-0 overflow-hidden rounded-[1.25rem] p-1.5 text-left transition-all duration-200',

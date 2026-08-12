@@ -163,6 +163,7 @@ export const PageSidebar = memo(function PageSidebar({
     onRetryFailedPage,
     onReorderPages,
     onDeletePage,
+    onDeleteSelectedPages,
     onRenamePage,
     onDuplicatePage,
     onUpdatePageOutline,
@@ -175,9 +176,13 @@ export const PageSidebar = memo(function PageSidebar({
     onToggleCollapsed
   } = usePageSidebarController(sessionId)
   const selectedPageId = useSessionDetailUiStore((state) => state.selectedPageId)
+  const selectedPageIds = useSessionDetailUiStore((state) => state.selectedPageIds)
+  const multiSelectLastIndex = useSessionDetailUiStore((state) => state.multiSelectLastIndex)
+  const setSelectedPageId = useSessionDetailUiStore((state) => state.setSelectedPageId)
+  const setSelectedPageIds = useSessionDetailUiStore((state) => state.setSelectedPageIds)
+  const setMultiSelectLastIndex = useSessionDetailUiStore((state) => state.setMultiSelectLastIndex)
   const previewKey = useSessionDetailUiStore((state) => state.previewKey)
   const thumbnailVersions = useSessionDetailUiStore((state) => state.thumbnailVersions)
-  const setSelectedPageId = useSessionDetailUiStore((state) => state.setSelectedPageId)
   const setWorkspaceTab = useSessionDetailUiStore((state) => state.setWorkspaceTab)
   const isAddingPage = useSessionDetailUiStore((state) => state.isAddingPage)
   const isRetryingSinglePage = useSessionDetailUiStore((state) => state.isRetryingSinglePage)
@@ -257,8 +262,30 @@ export const PageSidebar = memo(function PageSidebar({
     )
   }
 
-  const requestSelectPage = (pageId: string): boolean => {
+  const requestSelectPage = (pageId: string, event?: React.MouseEvent): boolean => {
     if (!pageId || disabled) return false
+    const isCtrlOrCmd = event && (event.ctrlKey || event.metaKey)
+    const isShift = event && event.shiftKey
+    const pageIndex = pages.findIndex((p) => p.id === pageId)
+    if (isCtrlOrCmd) {
+      const currentIds = useSessionDetailUiStore.getState().selectedPageIds
+      const nextIds = currentIds.includes(pageId)
+        ? currentIds.filter((id) => id !== pageId)
+        : [...currentIds, pageId]
+      setSelectedPageIds(nextIds)
+      setMultiSelectLastIndex(nextIds.length > 0 ? pages.findIndex((p) => p.id === nextIds[nextIds.length - 1]) : null)
+      return false
+    }
+    if (isShift && multiSelectLastIndex !== null) {
+      const from = Math.min(multiSelectLastIndex, pageIndex)
+      const to = Math.max(multiSelectLastIndex, pageIndex)
+      const rangeIds = pages.slice(from, to + 1).map((p) => p.id)
+      const currentIds = useSessionDetailUiStore.getState().selectedPageIds
+      const merged = new Set([...currentIds, ...rangeIds])
+      setSelectedPageIds(pages.filter((p) => merged.has(p.id)).map((p) => p.id))
+      setMultiSelectLastIndex(pageIndex)
+      return false
+    }
     if (pageId === selectedPageId) {
       setSelectedPageId(pageId)
       setWorkspaceTab('preview')
@@ -679,7 +706,7 @@ export const PageSidebar = memo(function PageSidebar({
                               {({ attributes, listeners, setActivatorNodeRef, isDragging }) => (
                                 <PageThumbnail
                                   page={page}
-                                  isSelected={selectedPageId === page.id}
+                                  isSelected={selectedPageId === page.id || selectedPageIds.includes(page.id)}
                                   previewVersion={
                                     previewKey + (thumbnailVersions[page.pageId] || 0)
                                   }
@@ -895,6 +922,22 @@ export const PageSidebar = memo(function PageSidebar({
                 <TooltipContent side="right">{t('sessionDetail.collapseSidebar')}</TooltipContent>
               </Tooltip>
             </div>
+            {selectedPageIds.length > 0 && (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="flex-1 truncate text-[10px] font-medium text-[#5d6b4d]">
+                  {t('sessionDetail.selectedPageCount', { count: selectedPageIds.length })}
+                </span>
+                <button
+                  type="button"
+                  disabled={pageManagementDisabled || selectedPageIds.length === 0}
+                  onClick={() => onDeleteSelectedPages(selectedPageIds)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-red-300/60 bg-red-50/80 px-2 py-1 text-[10px] font-medium text-red-600 transition-colors hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:grayscale"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  {t('pageManagement.batchDeleteConfirmAction', { count: selectedPageIds.length })}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
